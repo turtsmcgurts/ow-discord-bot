@@ -9,6 +9,7 @@ client = discord.Client()
 supportList = [] #list of discord members signed up to support mixes
 commandString = '!join !quit (admin !reset !shutdown)'
 infoString = 'People waiting to play\n-----------'
+minimum_number_for_mention = 2
 #channelID = '288490815200821259' #channel.id identifier for the channel
 channelID = '288537682538266625' #golden_support
 #channelID = '288497909522104323' #test1
@@ -37,6 +38,8 @@ async def on_message(message):
             if message.author not in supportList:
                 supportList.append(message.author)
                 await printPlayerList(message.channel)
+                if len(supportList) == minimum_number_for_mention:
+                    await mentionPlayerList(message.channel)
                 
         elif msg.startswith('!quit'):
             if message.author in supportList:
@@ -90,6 +93,12 @@ async def initialStartupClear():
         if c.id == channelID:
             await purgeChannel(c)
             break
+
+async def mentionPlayerList(channel):
+    str = ''
+    for member in supportList:
+        str += '{} '.format(member.mention)
+    await client.send_message(channel, 'You\'re {}: {}'.format(minimum_number_for_mention, str))
     
 async def printPlayerList(channel):
     await purgeChannel(channel)
