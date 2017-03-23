@@ -19,6 +19,7 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
+    await allowChatPermissions()
     await printWelcomeMessage()
 
 @client.event
@@ -57,6 +58,8 @@ async def on_message(message):
         elif message.content.startswith('!shutdown'):
             if checkIfRole(message.author, modRole):
                 await purgeChannel(message.channel)
+                await printOfflineMessage(message.channel)
+                await removeChatPermissions()
                 await client.logout()
                 
         elif message.content.startswith('!clear'):
@@ -97,6 +100,38 @@ async def printWelcomeMessage():
             await client.send_message(c, '```{}\n\n{}```'.format(commandString, infoString))
             break
 
+async def printOfflineMessage():
+    #look for channel via ID
+    channels = client.get_all_channels()
+    for c in channels:
+        if c.id == channelID:
+            await client.send_message(c, '```Bot is currently offline.```')
+            break
+            
+async def allowChatPermissions():
+    #look for channel via ID
+    channels = client.get_all_channels()
+    for c in channels:
+        if c.id == channelID:
+            #make a list of users in the channel and set can_send_messages to True
+            users = client.get_all_members()
+            for u in users:
+                await client.set_channel_permissions(channel, u, allow.can_send_messages = True)
+                break
+        break
+            
+async def removeChatPermissions():
+    #look for channel via ID
+    channels = client.get_all_channels()
+    for c in channels:
+        if c.id == channelID:
+            #make a list of users in the channel and set can_send_messages to False
+            users = client.get_all_members()
+            for u in users:
+                await client.set_channel_permissions(channel, u, deny.can_send_messages = True)
+                break
+        break
+        
 def checkIfRole(user, role):
     role = discord.utils.find(lambda r: r.name == role, user.roles)
     #print('role {}'.format(role))
