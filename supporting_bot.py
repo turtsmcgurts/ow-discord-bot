@@ -10,8 +10,9 @@ supportList = [] #list of discord members signed up to support mixes
 commandString = '!join !quit (admin !reset !shutdown)'
 infoString = 'People waiting to play\n-----------'
 #channelID = '288490815200821259' #channel.id identifier for the channel
-channelID = '288537682538266625' #testsupport
+channelID = '288537682538266625' #golden_support
 #channelID = '288497909522104323' #test1
+serverID = '212352899135569920' #goldens server
 modRole = 'ow-support-admin'
 
 @client.event
@@ -30,12 +31,14 @@ async def on_message(message):
     #try:
     #only worry about messages from a specific channel
     if message.channel.id == channelID:
-        if message.content.startswith('!join'):
+        msg = message.content.lower()
+    
+        if msg.startswith('!join'):
             if message.author not in supportList:
                 supportList.append(message.author)
                 await printPlayerList(message.channel)
                 
-        elif message.content.startswith('!quit'):
+        elif msg.startswith('!quit'):
             if message.author in supportList:
                 supportList.remove(message.author)
                 #await client.send_message(message.channel, '{} quit'.format(message.author.name))
@@ -43,23 +46,23 @@ async def on_message(message):
             else:
                 await client.delete_message(message)
                 
-        elif message.content.startswith('!list'):
+        elif msg.startswith('!list'):
             await printPlayerList(message.channel)
             
-        elif message.content.startswith('!channels'):
+        elif msg.startswith('!channels'):
             await client.delete_message(message)
             if checkIfRole(message.author, modRole):
                 channels = client.get_all_channels()
                 for c in channels:
                     print('Channel \'{}\' has ID \'{}\' on server \'{}\''.format(c.name, c.id, c.server.name))
                 
-        elif message.content.startswith('!reset'):
+        elif msg.startswith('!reset'):
             await client.delete_message(message)
             if checkIfRole(message.author, modRole):
                 supportList[:] = []
                 await printPlayerList(message.channel)
                 
-        elif message.content.startswith('!shutdown'):
+        elif msg.startswith('!shutdown'):
             if checkIfRole(message.author, modRole):
                 await purgeChannel(message.channel)
                 time.sleep(1)
@@ -68,10 +71,10 @@ async def on_message(message):
                 time.sleep(1)
                 await client.logout()
                 
-        elif message.content.startswith('!clear'):
+        elif msg.startswith('!clear'):
             await purgeChannel(message.channel)
 
-        elif message.content.startswith('!t'):
+        elif msg.startswith('!t'):
             await removeChatPermissions(message.channel)
             
         else:
@@ -127,37 +130,43 @@ async def printOfflineMessage():
             break
             
 async def allowChatPermissions():
-    serv = client.get_server('212352899135569920')
-    roles = serv.role_hierarchy
-    
-    channels = client.get_all_channels()
-    for c in channels:
-        if c.id == channelID:
-            for role in roles:
-                #print('{} + {}'.format(ro.name, ro.id))
-                if (role.id == '263329758828298262'):
-                    #print('role: {}'.format(role.name))
-                    overwrite = discord.PermissionOverwrite()
-                    overwrite.send_messages = True
-                    overwrite.read_messages = True
-                    
-                    await client.edit_channel_permissions(c, role, overwrite)
-                    break
+    try:
+        serv = client.get_server('212352899135569920')
+        roles = serv.role_hierarchy
+        
+        channels = client.get_all_channels()
+        for c in channels:
+            if c.id == channelID:
+                for role in roles:
+                    #print('{} + {}'.format(ro.name, ro.id))
+                    if (role.id == '263329758828298262'):
+                        #print('role: {}'.format(role.name))
+                        overwrite = discord.PermissionOverwrite()
+                        overwrite.send_messages = True
+                        overwrite.read_messages = True
+                        
+                        await client.edit_channel_permissions(c, role, overwrite)
+                        break
+    except:
+        print ('allowChatPermissions error')
             
 async def removeChatPermissions(channel):
-    serv = client.get_server('212352899135569920')
-    roles = serv.role_hierarchy
-    
-    for role in roles:
-        #print('{} + {}'.format(ro.name, ro.id))
-        if (role.id == '263329758828298262'):
-            print('role: {}'.format(role.name))
-            overwrite = discord.PermissionOverwrite()
-            overwrite.send_messages = False
-            overwrite.read_messages = True
-            
-            await client.edit_channel_permissions(channel, role, overwrite)
-            break
+    try:
+        serv = client.get_server('212352899135569920')
+        roles = serv.role_hierarchy
+        
+        for role in roles:
+            #print('{} + {}'.format(ro.name, ro.id))
+            if (role.id == '263329758828298262'):
+                print('role: {}'.format(role.name))
+                overwrite = discord.PermissionOverwrite()
+                overwrite.send_messages = False
+                overwrite.read_messages = True
+                
+                await client.edit_channel_permissions(channel, role, overwrite)
+                break
+    except:
+        print ('removeChatPermissions error')
                     
 def checkIfRole(user, role):
     role = discord.utils.find(lambda r: r.name == role, user.roles)
