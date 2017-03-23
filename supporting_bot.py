@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands;
 import asyncio
 import gaycode #where we store the bots token, so it isn't publicly displayed on github
+import time
 
 client = discord.Client()
 
@@ -19,11 +20,14 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
+    await initialStartupClear()
     await allowChatPermissions()
+    time.sleep(1)
     await printWelcomeMessage()
 
 @client.event
 async def on_message(message):
+    #try:
     #only worry about messages from a specific channel
     if message.channel.id == channelID:
         if message.content.startswith('!join'):
@@ -58,18 +62,32 @@ async def on_message(message):
         elif message.content.startswith('!shutdown'):
             if checkIfRole(message.author, modRole):
                 await purgeChannel(message.channel)
-                await printOfflineMessage(message.channel)
-                await removeChatPermissions()
+                time.sleep(1)
+                await printOfflineMessage()
+                await removeChatPermissions(message.channel)
+                time.sleep(1)
                 await client.logout()
                 
         elif message.content.startswith('!clear'):
             await purgeChannel(message.channel)
 
+        elif message.content.startswith('!t'):
+            await removeChatPermissions(message.channel)
+            
         else:
             if message.author != client.user:
                 #print('deleting message from {}'.format(message.author.name))
                 await client.delete_message(message)
+    #except:
+    #    print('error')
 
+async def initialStartupClear():
+    channels = client.get_all_channels()
+    for c in channels:
+        if c.id == channelID:
+            await purgeChannel(c)
+            break
+    
 async def printPlayerList(channel):
     await purgeChannel(channel)
     
@@ -109,29 +127,38 @@ async def printOfflineMessage():
             break
             
 async def allowChatPermissions():
-    #look for channel via ID
+    serv = client.get_server('212352899135569920')
+    roles = serv.role_hierarchy
+    
     channels = client.get_all_channels()
     for c in channels:
         if c.id == channelID:
-            #make a list of users in the channel and set can_send_messages to True
-            users = client.get_all_members()
-            for u in users:
-                await client.set_channel_permissions(channel, u, allow.can_send_messages = True)
-                break
-        break
+            for role in roles:
+                #print('{} + {}'.format(ro.name, ro.id))
+                if (role.id == '263329758828298262'):
+                    #print('role: {}'.format(role.name))
+                    overwrite = discord.PermissionOverwrite()
+                    overwrite.send_messages = True
+                    overwrite.read_messages = True
+                    
+                    await client.edit_channel_permissions(c, role, overwrite)
+                    break
             
-async def removeChatPermissions():
-    #look for channel via ID
-    channels = client.get_all_channels()
-    for c in channels:
-        if c.id == channelID:
-            #make a list of users in the channel and set can_send_messages to False
-            users = client.get_all_members()
-            for u in users:
-                await client.set_channel_permissions(channel, u, deny.can_send_messages = True)
-                break
-        break
-        
+async def removeChatPermissions(channel):
+    serv = client.get_server('212352899135569920')
+    roles = serv.role_hierarchy
+    
+    for role in roles:
+        #print('{} + {}'.format(ro.name, ro.id))
+        if (role.id == '263329758828298262'):
+            print('role: {}'.format(role.name))
+            overwrite = discord.PermissionOverwrite()
+            overwrite.send_messages = False
+            overwrite.read_messages = True
+            
+            await client.edit_channel_permissions(channel, role, overwrite)
+            break
+                    
 def checkIfRole(user, role):
     role = discord.utils.find(lambda r: r.name == role, user.roles)
     #print('role {}'.format(role))
