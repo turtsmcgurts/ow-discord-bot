@@ -14,7 +14,7 @@ minimum_number_for_mention = 6
 channelID = '288537682538266625' #golden_support
 #channelID = '288497909522104323' #test1
 serverID = '212352899135569920' #goldens server
-modRole = 'ow-support-admin'
+modRole = 'destiny-support-admin'
 
 @client.event
 async def on_ready():
@@ -23,7 +23,7 @@ async def on_ready():
     print(client.user.id)
     print('------')
     await initialStartupClear()
-    await allowChatPermissions()
+    #await allowChatPermissions()
     time.sleep(1)
     await printWelcomeMessage()
 
@@ -70,7 +70,7 @@ async def on_message(message):
                 await purgeChannel(message.channel)
                 time.sleep(1)
                 await printOfflineMessage()
-                await removeChatPermissions(message.channel)
+                #await removeChatPermissions(message.channel)
                 time.sleep(1)
                 await client.logout()
                 
